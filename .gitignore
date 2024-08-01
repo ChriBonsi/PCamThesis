@@ -1,3 +1,6 @@
+# dataset files
+data/
+
 # Created by https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,windows,macos,linux,pycharm+all,jetbrains+all,visualstudiocode,virtualenv,latex,jetbrains+iml
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,jupyternotebooks,windows,macos,linux,pycharm+all,jetbrains+all,visualstudiocode,virtualenv,latex,jetbrains+iml
 
