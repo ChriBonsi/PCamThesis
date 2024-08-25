@@ -11,13 +11,21 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 # Defining plotting settings
 plt.rcParams['figure.figsize'] = 14, 6
-plt.ion()
 
 # Initializing normalizing transform for the dataset
 normalize_transform = torchvision.transforms.Compose([
     torchvision.transforms.ToTensor(),
     torchvision.transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
 ])
+
+# Sezione per un'eventuale data augmentation
+# augment_transform = torchvision.transforms.Compose([
+#     torchvision.transforms.RandomHorizontalFlip(),
+#     torchvision.transforms.RandomRotation(10),
+#     torchvision.transforms.RandomResizedCrop(96, scale=(0.8, 1.0)),
+#     torchvision.transforms.ToTensor(),
+#     torchvision.transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+# ])
 
 # Downloading the PCam dataset into train and test sets
 full_train_dataset = torchvision.datasets.PCAM(
@@ -30,6 +38,7 @@ full_test_dataset = torchvision.datasets.PCAM(
     split='test', download=True
 )
 
+# Total size of the sets [train, test]: [262144, 32768]
 # Define the subset sizes
 train_subset_size = 5000
 test_subset_size = 1000
