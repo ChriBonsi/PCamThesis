@@ -802,3 +802,6 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,windows,macos,linux,pycharm+all,jetbrains+all,visualstudiocode,virtualenv,latex,jetbrains+iml
+modeltest1.pth
+
+modeltest2.pth
