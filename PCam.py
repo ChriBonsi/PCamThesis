@@ -7,6 +7,8 @@ import torchvision
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Subset
 
+from model import CNN
+
 ssl._create_default_https_context = ssl._create_unverified_context
 
 # Defining plotting settings
@@ -48,7 +50,8 @@ train_indices, _ = train_test_split(range(len(full_train_dataset)), train_size=t
 test_indices, _ = train_test_split(range(len(full_test_dataset)), train_size=test_subset_size, random_state=42)
 
 # Step 1: Split the train_dataset into a smaller training set and a validation set
-train_indices, val_indices = train_test_split(train_indices, test_size=0.2, random_state=42)  # 80-20 split for train-validation
+train_indices, val_indices = train_test_split(train_indices, test_size=0.2,
+                                              random_state=42)  # 80-20 split for train-validation
 
 train_dataset = Subset(full_train_dataset, train_indices)
 val_dataset = Subset(full_train_dataset, val_indices)
@@ -68,40 +71,12 @@ plt.imshow(np.transpose(torchvision.utils.make_grid(images[:25], padding=1, nrow
 plt.axis('off')
 plt.show()
 
-# CNN architecture
-class CNN(torch.nn.Module):
-    def __init__(self):
-        super(CNN, self).__init__()
-        self.model = torch.nn.Sequential(
-            torch.nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, padding=1),
-            torch.nn.ReLU(),
-            torch.nn.MaxPool2d(kernel_size=2),
-            torch.nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1),
-            torch.nn.ReLU(),
-            torch.nn.MaxPool2d(kernel_size=2),
-            torch.nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1),
-            torch.nn.ReLU(),
-            torch.nn.MaxPool2d(kernel_size=2),
-            torch.nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, padding=1),
-            torch.nn.ReLU(),
-            torch.nn.MaxPool2d(kernel_size=2),
-            torch.nn.Flatten(),
-            torch.nn.Linear(128 * 6 * 6, 512),  # Adjusted based on the calculated size
-            torch.nn.ReLU(),
-            torch.nn.Linear(512, 1),  # Binary classification output
-            torch.nn.Sigmoid()  # Sigmoid activation for binary classification
-        )
-
-    def forward(self, x):
-        return self.model(x)
-
-
 # Selecting the appropriate training device
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model = CNN().to(device)
 
 # Defining the model hyperparameters
-num_epochs = 15
+num_epochs = 50
 learning_rate = 0.001
 weight_decay = 0.01
 criterion = torch.nn.BCELoss()
@@ -167,6 +142,8 @@ with torch.no_grad():
     print(f"Test set accuracy = {100 * test_acc / len(test_dataset)} %")
     print(f"Test set loss = {test_loss}")
 
+torch.save(model.state_dict(), 'modeltest2.pth')
+
 # Step 4: Plot the training, validation, and test losses
 plt.plot(range(1, num_epochs + 1), train_loss_list, label="Training Loss")
 plt.plot(range(1, num_epochs + 1), val_loss_list, label="Validation Loss")
@@ -183,12 +160,14 @@ images, labels = images.to(device), labels.to(device)
 outputs = model(images)
 predicted = (outputs > 0.5).float()
 
+
 # Plot images and labels
 def imshow(img):
     img = img / 2 + 0.5  # unnormalize
     npimg = img.cpu().numpy()
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
     plt.show()
+
 
 # Display images with predictions
 imshow(torchvision.utils.make_grid(images[:16].cpu()))
