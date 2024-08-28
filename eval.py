@@ -7,7 +7,7 @@ import torchvision
 from PIL import Image
 from matplotlib import pyplot as plt
 
-from model import CNN
+from vgg19_model import vgg19_binary
 
 # 1. Load images to test the model
 
@@ -42,10 +42,10 @@ batch_labels = [labels[i] for i in indices]
 batch_images_tensor = torch.stack([transform(Image.fromarray(img)) for img in batch_images])
 
 # 2. Define the model architecture
-model = CNN()  # Don't load the pre-trained weights
+model = vgg19_binary()  # Don't load the pre-trained weights
 
 # 3. Load the saved model state_dict
-model.load_state_dict(torch.load('modeltest1.pth'))
+model.load_state_dict(torch.load('models/vgg19_25ep.pth'))
 
 # 4. Move the model to the appropriate device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

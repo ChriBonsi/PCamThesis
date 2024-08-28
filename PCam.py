@@ -7,7 +7,7 @@ import torchvision
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Subset
 
-from model import CNN
+from vgg19_model import vgg19_binary
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -20,7 +20,7 @@ normalize_transform = torchvision.transforms.Compose([
     torchvision.transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
 ])
 
-# Sezione per un'eventuale data augmentation
+# Eventual data augmentation
 # augment_transform = torchvision.transforms.Compose([
 #     torchvision.transforms.RandomHorizontalFlip(),
 #     torchvision.transforms.RandomRotation(10),
@@ -73,10 +73,10 @@ plt.show()
 
 # Selecting the appropriate training device
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-model = CNN().to(device)
+model = vgg19_binary().to(device)
 
 # Defining the model hyperparameters
-num_epochs = 50
+num_epochs = 25
 learning_rate = 0.001
 weight_decay = 0.01
 criterion = torch.nn.BCELoss()
@@ -142,7 +142,7 @@ with torch.no_grad():
     print(f"Test set accuracy = {100 * test_acc / len(test_dataset)} %")
     print(f"Test set loss = {test_loss}")
 
-torch.save(model.state_dict(), 'modeltest2.pth')
+torch.save(model.state_dict(), 'models/custom_50ep.pth')
 
 # Step 4: Plot the training, validation, and test losses
 plt.plot(range(1, num_epochs + 1), train_loss_list, label="Training Loss")

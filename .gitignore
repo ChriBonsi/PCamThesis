@@ -1,6 +1,3 @@
-# dataset files
-data/
-
 # Created by https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,windows,macos,linux,pycharm+all,jetbrains+all,visualstudiocode,virtualenv,latex,jetbrains+iml
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,jupyternotebooks,windows,macos,linux,pycharm+all,jetbrains+all,visualstudiocode,virtualenv,latex,jetbrains+iml
 
@@ -802,6 +799,15 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,windows,macos,linux,pycharm+all,jetbrains+all,visualstudiocode,virtualenv,latex,jetbrains+iml
-modeltest1.pth
 
-modeltest2.pth
+# dataset files
+data/
+
+# Ignore all the models except the final one
+models/*
+!models/final_model.pth
+
+# Eventual training models
+pretrained_resnet_eval.py
+pretrained_vgg_eval.py
+vgg19_model.py
