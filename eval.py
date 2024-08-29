@@ -15,8 +15,8 @@ from models.vgg19_model import vgg19_binary
 batch_size = 100
 
 # Paths to the dataset files
-train_images_path = 'data/PCam/train/pcam/camelyonpatch_level_2_split_train_x.h5'
-train_labels_path = 'data/PCam/train/pcam/camelyonpatch_level_2_split_train_y.h5'
+train_images_path = 'data/PCam/test/pcam/camelyonpatch_level_2_split_test_x.h5'
+train_labels_path = 'data/PCam/test/pcam/camelyonpatch_level_2_split_test_y.h5'
 
 # Load the HDF5 files
 with h5py.File(train_images_path, 'r') as f:
@@ -58,10 +58,9 @@ batch_images_tensor = batch_images_tensor.to(device)
 # Perform inference
 with torch.no_grad():
     outputs = model(batch_images_tensor)
-    _, predicted_labels = torch.max(outputs, 1)
+    predicted_labels = (outputs > 0.5).float().cpu().numpy()
 
-# Move the predicted labels and actual labels to CPU for visualization
-predicted_labels = predicted_labels.cpu().numpy()
+# Move the actual labels to CPU for visualization
 actual_labels = np.array(batch_labels).flatten()
 
 # Plotting the results
@@ -78,10 +77,6 @@ for i, ax in enumerate(axes):
 plt.tight_layout()
 plt.show()
 
-correct_guesses = 0
-
-for i in range(batch_size):
-    if (predicted_labels[i] == 1 and batch_labels[i] == 1) or (predicted_labels[i] == 0 and batch_labels[i] == 0):
-        correct_guesses += 1
-
+# Calculate and print the accuracy
+correct_guesses = np.sum(predicted_labels.flatten() == actual_labels)
 print(f"Accuracy: {correct_guesses / batch_size * 100:.2f}%")

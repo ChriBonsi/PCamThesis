@@ -1,4 +1,3 @@
-import ssl
 import time
 from copy import deepcopy
 
@@ -10,8 +9,6 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import Subset
 
 from models.vgg19_model import vgg19_binary
-
-ssl._create_default_https_context = ssl._create_unverified_context
 
 # Defining plotting settings
 plt.rcParams['figure.figsize'] = 14, 6
