@@ -9,7 +9,7 @@ import torchvision
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Subset
 
-from vgg19_model import vgg19_binary
+from models.vgg19_model import vgg19_binary
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -34,12 +34,12 @@ normalize_transform = torchvision.transforms.Compose([
 # Downloading the PCam dataset into train and test sets
 full_train_dataset = torchvision.datasets.PCAM(
     root="data/PCam/train", transform=normalize_transform,
-    split='train', download=True
+    split='train', download=False
 )
 
 full_test_dataset = torchvision.datasets.PCAM(
     root="data/PCam/test", transform=normalize_transform,
-    split='test', download=True
+    split='test', download=False
 )
 
 start_time = time.time()
@@ -164,7 +164,7 @@ with torch.no_grad():
     print(f"Test set accuracy = {100 * test_acc / len(test_dataset)} %")
     print(f"Test set loss = {test_loss}")
 
-torch.save(best_model_weights, 'models/vgg19_es.pth')
+torch.save(best_model_weights, 'saved_weights/vgg19_es.pth')
 
 # Step 4: Plot the training, validation, and test losses
 plt.plot(range(1, num_epochs + 1), train_loss_list, label="Training Loss")

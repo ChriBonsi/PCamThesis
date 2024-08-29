@@ -804,10 +804,12 @@ $RECYCLE.BIN/
 data/
 
 # Ignore all the models except the final one
-models/*
-!models/final_model.pth
+saved_weights/*
+!saved_weights/final_model.pth
 
 # Eventual training models
-pretrained_resnet_eval.py
-pretrained_vgg_eval.py
-vgg19_model.py
+models/pretrained_resnet_eval.py
+models/pretrained_vgg_eval.py
+models/vgg19_model.py
+models/finetuned_vgg.py
+models/ft_vgg_eval.py
