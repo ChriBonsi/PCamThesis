@@ -10,9 +10,6 @@ from torch.utils.data import Subset
 
 from models.vgg19_model import vgg19_binary
 
-# Defining plotting settings
-plt.rcParams['figure.figsize'] = 14, 6
-
 # Initializing normalizing transform for the dataset
 normalize_transform = torchvision.transforms.Compose([
     torchvision.transforms.ToTensor(),
@@ -67,10 +64,6 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, s
 # Plotting 25 images from the 1st batch
 dataiter = iter(train_loader)
 images, labels = next(dataiter)
-
-plt.imshow(np.transpose(torchvision.utils.make_grid(images[:25], padding=1, nrow=5).numpy(), (1, 2, 0)))
-plt.axis('off')
-plt.show()
 
 # Selecting the appropriate training device
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -179,17 +172,6 @@ images, labels = images.to(device), labels.to(device)
 outputs = model(images)
 predicted = (outputs > 0.5).float()
 
-
-# Plot images and labels
-def imshow(img):
-    img = img / 2 + 0.5  # unnormalize
-    npimg = img.cpu().numpy()
-    plt.imshow(np.transpose(npimg, (1, 2, 0)))
-    plt.show()
-
-
-# Display images with predictions
-imshow(torchvision.utils.make_grid(images[:16].cpu()))
 print('Actual: ', ' '.join('%5s' % labels[j].item() for j in range(16)))
 print('Predicted: ', ' '.join('%5s' % predicted[j].item() for j in range(16)))
 print("Time elapsed: {:.2f}s".format(time.time() - start_time))
