@@ -6,8 +6,9 @@ import torch
 import torchvision
 from PIL import Image
 from matplotlib import pyplot as plt
+from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, RocCurveDisplay, ConfusionMatrixDisplay
 
-from models.vgg19_model import vgg19_binary
+from model import CNN
 
 # 1. Load images to test the model
 
@@ -42,10 +43,10 @@ batch_labels = [labels[i] for i in indices]
 batch_images_tensor = torch.stack([transform(Image.fromarray(img)) for img in batch_images])
 
 # 2. Define the model architecture
-model = vgg19_binary()  # Don't load the pre-trained weights
+model = CNN()  # Don't load the pre-trained weights
 
 # 3. Load the saved model state_dict
-model.load_state_dict(torch.load('saved_weights/vgg19_es.pth'))
+model.load_state_dict(torch.load('saved_weights/simple_5k_v2.pth'))
 
 # 4. Move the model to the appropriate device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -76,6 +77,23 @@ for i, ax in enumerate(axes):
 
 plt.tight_layout()
 plt.show()
+
+# Calculate the confusion matrix
+cm = confusion_matrix(actual_labels, predicted_labels)
+ConfusionMatrixDisplay(confusion_matrix=cm).plot()
+plt.title("Confusion Matrix")
+plt.show()
+
+# Calculate the AUC
+auc = roc_auc_score(actual_labels, outputs.cpu().numpy())
+print(f"AUC: {auc:.4f}")
+RocCurveDisplay.from_predictions(actual_labels, outputs.cpu().numpy())
+plt.title("ROC Curve")
+plt.show()
+
+# Calculate the F1 score
+f1 = f1_score(actual_labels, predicted_labels)
+print(f"F1 Score: {f1:.4f}")
 
 # Calculate and print the accuracy
 correct_guesses = np.sum(predicted_labels.flatten() == actual_labels)

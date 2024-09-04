@@ -2,8 +2,11 @@ import time
 from copy import deepcopy
 
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
 import torchvision
+from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, ConfusionMatrixDisplay, \
+    roc_curve
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Subset
 
@@ -133,9 +136,11 @@ for epoch in range(num_epochs):
 if best_model_weights:
     model.load_state_dict(best_model_weights)
 
-# Step 3: Calculate and store test loss
+# Step 3: Calculate and store test metrics (loss, accuracy, confusion matrix, AUC, F1 score)
 test_loss = 0
 test_acc = 0
+all_labels = []
+all_outputs = []
 
 model.eval()
 with torch.no_grad():
@@ -150,9 +155,61 @@ with torch.no_grad():
         predicted = (outputs > 0.5).float()
         test_acc += (predicted == labels).sum().item()
 
+        # Store the labels and outputs for later metrics calculation
+        all_labels.extend(labels.cpu().numpy())
+        all_outputs.extend(outputs.cpu().numpy())
+
     test_loss /= len(test_loader)
     print(f"Test set accuracy = {100 * test_acc / len(test_dataset)} %")
     print(f"Test set loss = {test_loss}")
+
+# Convert lists to numpy arrays for metric calculations
+all_labels = np.array(all_labels).flatten()
+all_outputs = np.array(all_outputs).flatten()
+
+# Calculate the confusion matrix
+cm = confusion_matrix(all_labels, (all_outputs > 0.5).astype(int))
+ConfusionMatrixDisplay(confusion_matrix=cm).plot()
+plt.title("Confusion Matrix")
+plt.show()
+
+# Calculate the AUC and ROC curve for the trained model
+auc_trained = roc_auc_score(all_labels, all_outputs)
+fpr_trained, tpr_trained, _ = roc_curve(all_labels, all_outputs)
+print(f"AUC (Trained): {auc_trained:.4f}")
+
+# Now let's calculate the AUC and ROC curve for the untrained model
+untrained_model = CNN().to(device)  # Initialize a new model without loading weights
+untrained_outputs = []
+
+untrained_model.eval()
+with torch.no_grad():
+    for i, (images, _) in enumerate(test_loader):
+        images = images.to(device)
+        outputs = untrained_model(images)
+        untrained_outputs.extend(outputs.cpu().numpy())
+
+# Convert the untrained model's outputs to a numpy array
+untrained_outputs = np.array(untrained_outputs).flatten()
+
+# Calculate the AUC and ROC curve for the untrained model
+auc_untrained = roc_auc_score(all_labels, untrained_outputs)
+fpr_untrained, tpr_untrained, _ = roc_curve(all_labels, untrained_outputs)
+print(f"AUC (Untrained): {auc_untrained:.4f}")
+
+# Plotting the ROC curve for both trained and untrained models on the same graph
+plt.figure()
+plt.plot(fpr_trained, tpr_trained, label=f"Trained Model AUC = {auc_trained:.4f}")
+plt.plot(fpr_untrained, tpr_untrained, linestyle='--', label=f"Untrained Model AUC = {auc_untrained:.4f}")
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+plt.title("ROC Curve Comparison: Trained vs Untrained Model")
+plt.legend()
+plt.show()
+
+# Calculate the F1 score
+f1 = f1_score(all_labels, (all_outputs > 0.5).astype(int))
+print(f"F1 Score: {f1:.4f}")
 
 # Save the best model weights
 torch.save(best_model_weights, 'saved_weights/simple_5k_v2.pth')
