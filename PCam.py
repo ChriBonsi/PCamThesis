@@ -2,13 +2,12 @@ import time
 from copy import deepcopy
 
 import matplotlib.pyplot as plt
-import numpy as np
 import torch
 import torchvision
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Subset
 
-from models.vgg19_model import vgg19_binary
+from model import CNN
 
 # Initializing normalizing transform for the dataset
 normalize_transform = torchvision.transforms.Compose([
@@ -40,8 +39,8 @@ start_time = time.time()
 
 # Total size of the sets [train, test]: [262144, 32768]
 # Define the subset sizes
-train_subset_size = 15000
-test_subset_size = 3000
+train_subset_size = 5000
+test_subset_size = 1000
 
 # Create indices and subsets for train and test datasets
 train_indices, _ = train_test_split(range(len(full_train_dataset)), train_size=train_subset_size, random_state=42)
@@ -61,13 +60,9 @@ train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-# Plotting 25 images from the 1st batch
-dataiter = iter(train_loader)
-images, labels = next(dataiter)
-
 # Selecting the appropriate training device
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-model = vgg19_binary().to(device)
+model = CNN().to(device)
 
 # Defining the model hyperparameters
 num_epochs = 50
@@ -76,12 +71,12 @@ weight_decay = 0.01
 criterion = torch.nn.BCELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
-# variables for early stopping
+# Variables for early stopping
 best_loss = float('inf')
 best_model_weights = None
-patience = 6
+patience = 7
 
-# Step 2: Modify the training loop to include validation loss calculation
+# Lists to store the loss values for plotting
 train_loss_list = []
 val_loss_list = []
 
@@ -123,7 +118,8 @@ for epoch in range(num_epochs):
     if val_loss < best_loss:
         best_loss = val_loss
         best_model_weights = deepcopy(model.state_dict())  # Deep copy here
-        patience = 6  # Reset patience counter
+        patience = 7  # Reset patience counter
+        print("Patience reset")
     else:
         patience -= 1
         if patience == 0:
@@ -132,6 +128,10 @@ for epoch in range(num_epochs):
             break
 
     print(f"Training loss = {train_loss_list[-1]}, Validation loss = {val_loss_list[-1]}")
+
+# Load the best model weights
+if best_model_weights:
+    model.load_state_dict(best_model_weights)
 
 # Step 3: Calculate and store test loss
 test_loss = 0
@@ -154,11 +154,12 @@ with torch.no_grad():
     print(f"Test set accuracy = {100 * test_acc / len(test_dataset)} %")
     print(f"Test set loss = {test_loss}")
 
-torch.save(best_model_weights, 'saved_weights/vgg19_es.pth')
+# Save the best model weights
+torch.save(best_model_weights, 'saved_weights/simple_5k_v2.pth')
 
 # Step 4: Plot the training, validation, and test losses
-plt.plot(range(1, num_epochs + 1), train_loss_list, label="Training Loss")
-plt.plot(range(1, num_epochs + 1), val_loss_list, label="Validation Loss")
+plt.plot(range(1, len(train_loss_list) + 1), train_loss_list, label="Training Loss")
+plt.plot(range(1, len(val_loss_list) + 1), val_loss_list, label="Validation Loss")
 plt.axhline(y=test_loss, color='r', linestyle='-', label="Test Loss")  # Test loss as a horizontal line
 plt.xlabel("Number of epochs")
 plt.ylabel("Loss")
