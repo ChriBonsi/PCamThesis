@@ -16,14 +16,14 @@ from model import CNN
 batch_size = 100
 
 # Paths to the dataset files
-train_images_path = 'data/PCam/test/pcam/camelyonpatch_level_2_split_test_x.h5'
-train_labels_path = 'data/PCam/test/pcam/camelyonpatch_level_2_split_test_y.h5'
+eval_images_path = 'data/PCam/test/pcam/camelyonpatch_level_2_split_test_x.h5'
+eval_labels_path = 'data/PCam/test/pcam/camelyonpatch_level_2_split_test_y.h5'
 
 # Load the HDF5 files
-with h5py.File(train_images_path, 'r') as f:
+with h5py.File(eval_images_path, 'r') as f:
     images = f['x'][:]  # Load all images
 
-with h5py.File(train_labels_path, 'r') as f:
+with h5py.File(eval_labels_path, 'r') as f:
     labels = f['y'][:]  # Load all labels
 
 # Normalize and transform the image for the model
@@ -43,7 +43,7 @@ batch_labels = [labels[i] for i in indices]
 batch_images_tensor = torch.stack([transform(Image.fromarray(img)) for img in batch_images])
 
 # 2. Define the model architecture
-model = CNN()  # Don't load the pre-trained weights
+model = CNN()
 
 # 3. Load the saved model state_dict
 model.load_state_dict(torch.load('saved_weights/simple_5k_v2.pth'))
