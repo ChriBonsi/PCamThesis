@@ -7,8 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torchvision
-from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, ConfusionMatrixDisplay, \
-    roc_curve
+from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, ConfusionMatrixDisplay, roc_curve
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Subset
 
@@ -20,14 +19,14 @@ normalize_transform = torchvision.transforms.Compose([
     torchvision.transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
 ])
 
-# Eventual data augmentation
-# augment_transform = torchvision.transforms.Compose([
-#     torchvision.transforms.RandomHorizontalFlip(),
-#     torchvision.transforms.RandomRotation(10),
-#     torchvision.transforms.RandomResizedCrop(96, scale=(0.8, 1.0)),
-#     torchvision.transforms.ToTensor(),
-#     torchvision.transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
-# ])
+# Data augmentation transform
+augment_transform = torchvision.transforms.Compose([
+    torchvision.transforms.RandomHorizontalFlip(),
+    torchvision.transforms.RandomRotation(10),
+    torchvision.transforms.RandomResizedCrop(96, scale=(0.8, 1.0)),
+    torchvision.transforms.ToTensor(),
+    torchvision.transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+])
 
 # Downloading the PCam dataset into train and test sets
 full_train_dataset = torchvision.datasets.PCAM(
@@ -40,28 +39,37 @@ full_test_dataset = torchvision.datasets.PCAM(
     split='test', download=False
 )
 
+# Create an augmented dataset using the augment_transform
+augmented_train_dataset = torchvision.datasets.PCAM(
+    root="data/PCam/train", transform=augment_transform,
+    split='train', download=False
+)
+
 start_time = time.time()
 
 # Total size of the sets [train, test]: [262144, 32768]
 # Define the subset sizes
-train_subset_size = 5000
-test_subset_size = 1000
+train_subset_size = 25000
+test_subset_size = 5000
 
 # Create indices and subsets for train and test datasets
 train_indices, _ = train_test_split(range(len(full_train_dataset)), train_size=train_subset_size, random_state=42)
 test_indices, _ = train_test_split(range(len(full_test_dataset)), train_size=test_subset_size, random_state=42)
 
-# Step 1: Split the train_dataset into a smaller training set and a validation set
-train_indices, val_indices = train_test_split(train_indices, test_size=0.2,
-                                              random_state=42)  # 80-20 split for train-validation
+# Split the train_dataset into a smaller training set and a validation set
+train_indices, val_indices = train_test_split(train_indices, test_size=0.2, random_state=42)  # 80-20 split
 
 train_dataset = Subset(full_train_dataset, train_indices)
 val_dataset = Subset(full_train_dataset, val_indices)
 test_dataset = Subset(full_test_dataset, test_indices)
+augmented_train_dataset = Subset(augmented_train_dataset, train_indices)
 
-# Generate data loaders for the training, validation, and test sets
+# Concatenate the original and augmented datasets
+combined_train_dataset = torch.utils.data.ConcatDataset([train_dataset, augmented_train_dataset])
+
+# Generate data loaders for the combined training dataset, validation, and test sets
 batch_size = 128
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+combined_train_loader = torch.utils.data.DataLoader(combined_train_dataset, batch_size=batch_size, shuffle=True)
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
@@ -90,9 +98,9 @@ for epoch in range(num_epochs):
     train_loss = 0
     val_loss = 0
 
-    # Training phase
+    # Training phase with combined dataset (original + augmented)
     model.train()
-    for i, (images, labels) in enumerate(train_loader):
+    for i, (images, labels) in enumerate(combined_train_loader):
         images = images.to(device)
         labels = labels.float().view(-1, 1).to(device)  # Reshape labels for binary classification
 
@@ -104,7 +112,7 @@ for epoch in range(num_epochs):
         optimizer.step()
         train_loss += loss.item()
 
-    train_loss_list.append(train_loss / len(train_loader))
+    train_loss_list.append(train_loss / len(combined_train_loader))
 
     # Validation phase
     model.eval()
@@ -214,7 +222,7 @@ f1 = f1_score(all_labels, (all_outputs > 0.5).astype(int))
 print(f"F1 Score: {f1:.4f}")
 
 # Define a base filename
-base_filename = 'saved_weights/aug_5k.pth'
+base_filename = 'saved_weights/aug_25k.pth'
 
 # Check if the file already exists
 if os.path.exists(base_filename):
