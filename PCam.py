@@ -1,5 +1,7 @@
+import os
 import time
 from copy import deepcopy
+from datetime import datetime
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -211,8 +213,20 @@ plt.show()
 f1 = f1_score(all_labels, (all_outputs > 0.5).astype(int))
 print(f"F1 Score: {f1:.4f}")
 
-# Save the best model weights
-torch.save(best_model_weights, 'saved_weights/simple_5k_v2.pth')
+# Define a base filename
+base_filename = 'saved_weights/aug_5k.pth'
+
+# Check if the file already exists
+if os.path.exists(base_filename):
+    # Generate a new filename with a timestamp to avoid overwriting
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = base_filename + "_" + timestamp
+else:
+    # If file doesn't exist, use the base filename
+    filename = base_filename
+
+# Save the model with the unique filename
+torch.save(best_model_weights, filename)
 
 # Step 4: Plot the training, validation, and test losses
 plt.plot(range(1, len(train_loss_list) + 1), train_loss_list, label="Training Loss")
