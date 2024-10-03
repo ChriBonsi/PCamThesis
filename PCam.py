@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torchvision
-from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, ConfusionMatrixDisplay, roc_curve
+from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, ConfusionMatrixDisplay, roc_curve, \
+    classification_report
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Subset
 
@@ -69,6 +70,7 @@ combined_train_dataset = torch.utils.data.ConcatDataset([train_dataset, augmente
 
 # Generate data loaders for the combined training dataset, validation, and test sets
 batch_size = 128
+simple_train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 combined_train_loader = torch.utils.data.DataLoader(combined_train_dataset, batch_size=batch_size, shuffle=True)
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
@@ -183,6 +185,10 @@ ConfusionMatrixDisplay(confusion_matrix=cm).plot()
 plt.title("Confusion Matrix")
 plt.show()
 
+# Calculate the classification report
+print("\nClassification Report:")
+print(classification_report(all_labels, (all_outputs > 0.5).astype(int)))
+
 # Calculate the AUC and ROC curve for the trained model
 auc_trained = roc_auc_score(all_labels, all_outputs)
 fpr_trained, tpr_trained, _ = roc_curve(all_labels, all_outputs)
@@ -245,13 +251,4 @@ plt.ylabel("Loss")
 plt.legend()
 plt.show()
 
-# Plotting a few test images with their predictions
-dataiter = iter(test_loader)
-images, labels = next(dataiter)
-images, labels = images.to(device), labels.to(device)
-outputs = model(images)
-predicted = (outputs > 0.5).float()
-
-print('Actual: ', ' '.join('%5s' % labels[j].item() for j in range(16)))
-print('Predicted: ', ' '.join('%5s' % predicted[j].item() for j in range(16)))
 print("Time elapsed: {:.2f}s".format(time.time() - start_time))
