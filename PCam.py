@@ -74,6 +74,7 @@ simple_train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batc
 combined_train_loader = torch.utils.data.DataLoader(combined_train_dataset, batch_size=batch_size, shuffle=True)
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+used_loader = combined_train_loader # change this
 
 # Selecting the appropriate training device
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -102,7 +103,7 @@ for epoch in range(num_epochs):
 
     # Training phase with combined dataset (original + augmented)
     model.train()
-    for i, (images, labels) in enumerate(combined_train_loader):
+    for i, (images, labels) in enumerate(used_loader):
         images = images.to(device)
         labels = labels.float().view(-1, 1).to(device)  # Reshape labels for binary classification
 
@@ -114,7 +115,7 @@ for epoch in range(num_epochs):
         optimizer.step()
         train_loss += loss.item()
 
-    train_loss_list.append(train_loss / len(combined_train_loader))
+    train_loss_list.append(train_loss / len(used_loader))
 
     # Validation phase
     model.eval()
