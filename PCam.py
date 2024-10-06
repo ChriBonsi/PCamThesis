@@ -228,8 +228,15 @@ plt.show()
 f1 = f1_score(all_labels, (all_outputs > 0.5).astype(int))
 print(f"F1 Score: {f1:.4f}")
 
+part1 = "abc"
+part2 = train_subset_size/1000
+if used_loader == combined_train_loader:
+    part1 = "aug"
+elif used_loader == simple_train_loader:
+    part1 = "simple"
+
 # Define a base filename
-base_filename = 'saved_weights/aug_25k.pth'
+base_filename = f'new_weights/{part1}_{part2}k.pth'
 
 # Check if the file already exists
 if os.path.exists(base_filename):
